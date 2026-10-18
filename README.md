@@ -18,17 +18,77 @@ The project will be developed incrementally, with the following planned capabili
 - **Quality and Governance:** Evaluate response quality, retrieval accuracy, and task completion while incorporating server-side authorization, tenant isolation, observability, and audit trails.
 
 ## Status
-In development: Phase 0 setup is almost complete
+In development: Phase 0 (project setup) is nearly complete. The capabilities listed above are planned and are not implemented yet.
 
-Following capabilities are implemented
-- Initialized the Python project with `uv` (Python 3.12, `src/` layout, locked dependencies in `uv.lock`).
-- Added dev tools (pytest, pytest-cov, Ruff, mypy, bandit, pip-audit, pre-commit) and their settings in `pyproject.toml`: strict mypy, Ruff with Google-style docstrings, 85% coverage minimum.
-- Added the first unit test (`tests/unit/test_main.py`).
-- Added pre-commit hooks (`.pre-commit-config.yaml`): file hygiene, YAML/TOML checks, Ruff, and gitleaks secret scanning.
-- Added a local PostgreSQL 17 database with the pgvector extension (`docker-compose.yml` and an init script that enables the extension).
-- Added `.env.example` to document the required environment variables (fake values only).
-- Added the GitHub Actions CI workflow (`.github/workflows/ci.yml`) and this pull request template.
-- Updated `.gitignore` (macOS `.DS_Store`, local notes).
+Completed so far (development setup only):
+
+- Python 3.12 project managed with `uv`, using a `src/` layout and locked dependencies.
+- Dev tools with strict settings: pytest (85% coverage minimum), Ruff, mypy, bandit and pip-audit.
+- Pre-commit hooks for file hygiene, YAML/TOML checks, Ruff and secret scanning (gitleaks).
+- A first unit test.
+- A local PostgreSQL 17 database with the pgvector extension, run with Docker Compose.
+- An environment template (`.env.example`).
+- GitHub Actions CI and a pull request template.
+
+## Quick start
+Tested on macOS (Apple silicon). Other systems may need different install steps.
+
+1. Install the tools with [Homebrew](https://brew.sh):
+```bash
+   brew install git uv docker docker-compose colima
+```
+   If `docker compose` is not recognized, add the following entry inside the top-level { } of `~/.docker/config.json`, with a comma after the entry before it if one exists:
+```json
+   "cliPluginsExtraDirs": ["/opt/homebrew/lib/docker/cli-plugins"]
+```
+
+2. Clone the repository:
+```bash
+   git clone https://github.com/vinodashrit26/enterprise-knowledge-copilot.git
+   cd enterprise-knowledge-copilot
+```
+
+3. Create your local settings file. It is ignored by Git, so your values stay private:
+```bash
+   cp .env.example .env
+```
+   Edit `.env` and set `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, and a matching `DATABASE_URL`. You can generate a password with `openssl rand -hex 16`. `ANTHROPIC_API_KEY` is not needed yet.
+
+4. Install the Python dependencies (this also downloads Python 3.12):
+```bash
+   uv sync
+```
+
+5. Start the container engine and the database:
+```bash
+   colima start --cpu 2 --memory 4 --disk 30
+   docker compose up -d
+   docker compose ps
+```
+   The `db` container should show `healthy`. To confirm pgvector is enabled:
+```bash
+   docker compose exec db sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT extname, extversion FROM pg_extension;"'
+```
+
+6. Install the pre-commit hooks (they run automatically on every commit):
+```bash
+   uv run pre-commit install
+```
+
+7. Run the checks:
+```bash
+   uv run pytest
+   uv run ruff check .
+   uv run ruff format --check .
+   uv run mypy
+```
+
+8. Stop everything when you are done:
+```bash
+   docker compose down
+   colima stop
+```
+   Do not use `docker compose down -v` unless you want to delete the database data.
 
 ## Data and safety
 All initial development and testing will use synthetic documents, fabricated customer scenarios, and mock APIs. No confidential employer information, production customer data, credentials, or proprietary source code will be included.
@@ -36,13 +96,4 @@ All initial development and testing will use synthetic documents, fabricated cus
 The planned system will enforce authorization and tenant isolation at the application and tool layers. State-changing operations will require explicit human approval. These controls will be validated through testing as the relevant capabilities are implemented.
 
 ## License
-This project is released under the MIT License, see the LICENSE file.
-
-## Quick start
-Install the tools that are not in the repo: Git, Homebrew, Colima, docker, docker-compose, uv. Set up a new SSH key and add it to GitHub.
-git clone the repo.
-cp .env.example .env, then fill in your own values (database password, API key).
-uv sync (uses pyproject.toml, uv.lock, .python-version).
-colima start, then docker compose up -d (uses docker-compose.yml and the init script).
-uv run pre-commit install.
-Not in the repo, so copy it yourself: revision.md and .env. (The README has no setup guide yet. That is a gap.)
+This project is released under the MIT License; see the `LICENSE` file.
