@@ -7,7 +7,9 @@ authors = [
     { name = "Vinod Ashrit", email = "340693172+vinodashrit26@users.noreply.github.com" }
 ]
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "anthropic>=1.17.0",
+]
 
 [project.scripts]
 enterprise-knowledge-copilot = "enterprise_knowledge_copilot:main"
