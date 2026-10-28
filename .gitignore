@@ -224,3 +224,6 @@ __marimo__/
 
 # Personal study notes (private, never commit)
 revision.md
+
+# Saved model responses (local cache, never committed)
+.cache/
