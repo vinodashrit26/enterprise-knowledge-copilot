@@ -1,4 +1,4 @@
-"""Tests for LLM request cache-key generation."""
+"""Tests for the LLM cache key and the caching client."""
 
 from pathlib import Path
 from unittest.mock import MagicMock
@@ -19,6 +19,7 @@ FAKE_RESPONSE = LLMResponse(
 
 
 def make_mock_client() -> MagicMock:
+    """Return a fake inner client whose complete() always returns FAKE_RESPONSE."""
     inner = MagicMock(spec=LLMClient)
     inner.complete.return_value = FAKE_RESPONSE
     return inner
@@ -138,7 +139,6 @@ def test_first_call_goes_to_inner_client_and_writes_a_file(tmp_path: Path) -> No
     inner = make_mock_client()
 
     client = CachingClient(inner, tmp_path)
-    print(tmp_path)
     request = LLMRequest(
         prompt="Caching client Test",
         model="claude-haiku-5-5",
@@ -154,7 +154,7 @@ def test_first_call_goes_to_inner_client_and_writes_a_file(tmp_path: Path) -> No
 
 
 def test_second_identical_call_does_not_call_inner_client(tmp_path: Path) -> None:
-    """Verify second identical call does not create a cache file."""
+    """Verify an identical second call replays the file and skips the inner client."""
 
     inner = make_mock_client()
     client = CachingClient(inner, tmp_path)
@@ -170,6 +170,7 @@ def test_second_identical_call_does_not_call_inner_client(tmp_path: Path) -> Non
 
     assert inner.complete.call_count == 1
     assert second_result.cached is True
+    assert len(list(tmp_path.glob("*.json"))) == 1
 
     assert second_result.text == first_result.text
     assert second_result.input_tokens == first_result.input_tokens
