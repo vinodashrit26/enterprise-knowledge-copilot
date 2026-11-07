@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed — November 3, 2026
+Accepted — November 7, 2026
 
 ## Context
 
