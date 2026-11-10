@@ -17,7 +17,7 @@ class CachingClient:
         self._cache_dir.mkdir(parents=True, exist_ok=True)
 
     def complete(self, request: LLMRequest) -> LLMResponse:
-        """Return a cached response or call the inner client and cache the result."""
+        """Return a cached response if it is not truncated accoring to ADR-0002."""
         key = cache_key(request)
 
         cache_path = self._cache_dir / (key + ".json")
@@ -29,5 +29,7 @@ class CachingClient:
         else:
             # not available in the cache
             response = self._inner.complete(request)
+            if response.truncated:
+                return response
             cache_path.write_text(response.model_dump_json(), encoding="utf-8")
             return response

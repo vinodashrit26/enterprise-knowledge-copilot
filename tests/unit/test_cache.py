@@ -202,3 +202,22 @@ def test_different_request_calls_inner_client_again(tmp_path: Path) -> None:
 
     assert inner.complete.call_count == 2
     assert len(list(tmp_path.glob("*.json"))) == 2
+
+
+def test_truncated_response_is_not_cached(tmp_path: Path) -> None:
+    inner = make_mock_client()
+    client = CachingClient(inner, tmp_path)
+    request = LLMRequest(
+        prompt="Hello World!",
+        model="claude-haiku-5-5",
+        max_tokens=100,
+        system=None,
+    )
+    response = FAKE_RESPONSE.model_copy(update={"stop_reason": "max_tokens"})
+    inner.complete.return_value = response
+    response1 = client.complete(request)
+    response2 = client.complete(request)
+    assert response1 == response
+    assert response2 == response
+    assert inner.complete.call_count == 2
+    assert len(list(tmp_path.glob("*.json"))) == 0
