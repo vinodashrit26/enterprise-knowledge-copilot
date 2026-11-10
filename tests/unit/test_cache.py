@@ -205,6 +205,7 @@ def test_different_request_calls_inner_client_again(tmp_path: Path) -> None:
 
 
 def test_truncated_response_is_not_cached(tmp_path: Path) -> None:
+    """Verify truncated response is not cached."""
     inner = make_mock_client()
     client = CachingClient(inner, tmp_path)
     request = LLMRequest(
