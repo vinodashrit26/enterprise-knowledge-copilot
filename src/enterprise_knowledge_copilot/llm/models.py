@@ -1,5 +1,7 @@
 """Data shapes for talking to a language model."""
 
+from typing import Any
+
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -12,6 +14,8 @@ class LLMRequest(BaseModel):
     model: str = "claude-haiku-5-5"
     max_tokens: int = Field(default=1024, gt=0)
     system: str | None = None
+    # Optional JSON schema for structured model output.
+    output_schema: dict[str, Any] | None = None
 
 
 class LLMResponse(BaseModel):

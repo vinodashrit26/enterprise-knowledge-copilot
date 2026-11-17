@@ -81,3 +81,11 @@ def test_refused_is_false_when_stop_reason_is_max_tokens() -> None:
         stop_reason="max_tokens",
     )
     assert response.refused is False
+
+
+def test_output_schema_defaults_to_none() -> None:
+    """Verify output schema defaults to none."""
+    request = LLMRequest(
+        prompt="Output schema test",
+    )
+    assert request.output_schema is None
