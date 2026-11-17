@@ -31,3 +31,8 @@ class LLMResponse(BaseModel):
     def truncated(self) -> bool:
         """Return True if the model was cut off by the max_tokens limit."""
         return self.stop_reason == "max_tokens"
+
+    @property
+    def refused(self) -> bool:
+        """Return True if the stop_reason is refusal."""
+        return self.stop_reason == "refusal"
