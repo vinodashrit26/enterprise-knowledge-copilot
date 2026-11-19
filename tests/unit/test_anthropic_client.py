@@ -128,3 +128,48 @@ def test_anthropic_client_follows_the_interface() -> None:
     """mypy checks that AnthropicClient fits the LLMClient contract."""
     client: LLMClient = AnthropicClient(MagicMock())
     assert client is not None
+
+
+def test_output_schema_is_sent_as_output_config() -> None:
+    """Verify if output schema is sent as output config."""
+    sdk = MagicMock()
+    sdk.messages.create.return_value = make_fake_message()
+    output_schema = {
+        "type": "object",
+        "properties": {"answer": {"type": "string"}},
+    }
+    request = LLMRequest(
+        prompt="output schema Test",
+        model="claude-haiku-5-5",
+        max_tokens=100,
+        system=None,
+        output_schema=output_schema,
+    )
+    client = AnthropicClient(sdk=sdk)
+    client.complete(request)
+
+    call_args = sdk.messages.create.call_args.kwargs
+
+    assert call_args["output_config"] == {
+        "format": {
+            "type": "json_schema",
+            "schema": output_schema,
+        }
+    }
+
+
+def test_output_config_is_omitted_when_no_schema() -> None:
+    """Verify output config is omitted when there is no schema."""
+    sdk = MagicMock()
+    sdk.messages.create.return_value = make_fake_message()
+    request = LLMRequest(
+        prompt="output schema Test",
+        model="claude-haiku-5-5",
+        max_tokens=100,
+        system=None,
+    )
+    client = AnthropicClient(sdk=sdk)
+    client.complete(request)
+
+    call_args = sdk.messages.create.call_args.kwargs
+    assert call_args["output_config"] is anthropic.omit

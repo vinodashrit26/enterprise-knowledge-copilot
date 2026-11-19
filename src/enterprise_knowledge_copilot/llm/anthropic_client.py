@@ -1,6 +1,7 @@
 """A model client that calls Claude through the Anthropic SDK."""
 
 import anthropic
+from anthropic.types import OutputConfigParam
 
 from enterprise_knowledge_copilot.llm.errors import (
     LLMPermanentError,
@@ -43,11 +44,22 @@ class AnthropicClient:
             LLMPermanentError: If the call can never succeed as it is.
         """
         price = get_price(request.model)
+        output_config: OutputConfigParam | anthropic.Omit = (
+            {
+                "format": {
+                    "type": "json_schema",
+                    "schema": request.output_schema,
+                }
+            }
+            if request.output_schema is not None
+            else anthropic.omit
+        )
         try:
             message = self._sdk.messages.create(
                 model=request.model,
                 max_tokens=request.max_tokens,
                 system=request.system if request.system is not None else anthropic.omit,
+                output_config=output_config,
                 messages=[{"role": "user", "content": request.prompt}],
             )
         except anthropic.APIConnectionError as err:
