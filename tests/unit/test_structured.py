@@ -1,6 +1,7 @@
 """Tests for structured response."""
 
 import pytest
+from pydantic import ValidationError
 
 from enterprise_knowledge_copilot.llm.errors import RefusalError, TruncatedResponseError
 from enterprise_knowledge_copilot.llm.models import LLMResponse
@@ -49,4 +50,33 @@ def test_parse_answer_raises_when_refused() -> None:
         stop_reason="refusal",
     )
     with pytest.raises(RefusalError):
+        parse_answer(response)
+
+
+def test_parse_answer_raises_for_invalid_json() -> None:
+    """Raise exception for invalid json."""
+    response = LLMResponse(
+        text="The service is healthy",
+        model="claude-haiku-5-5",
+        input_tokens=3,
+        output_tokens=1,
+        cost_usd=0.0000008,
+        stop_reason="end_turn",
+    )
+    with pytest.raises(ValidationError):
+        parse_answer(response)
+
+
+def test_parse_answer_raises_for_wrong_shape() -> None:
+    """Raise exception for wrong shape."""
+    response = LLMResponse(
+        text='{"answer": "The service is healthy", "confidence": "very high"}',
+        model="claude-haiku-5-5",
+        input_tokens=3,
+        output_tokens=1,
+        cost_usd=0.0000008,
+        stop_reason="end_turn",
+    )
+
+    with pytest.raises(ValidationError):
         parse_answer(response)
