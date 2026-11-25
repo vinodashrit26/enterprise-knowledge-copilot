@@ -15,3 +15,7 @@ class LLMPermanentError(LLMError):
 
 class TruncatedResponseError(LLMError):
     """Raised when the LLM response is truncated."""
+
+
+class RefusalError(LLMError):
+    """Raised when the LLM refused to respond."""

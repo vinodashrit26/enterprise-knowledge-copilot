@@ -2,7 +2,7 @@
 
 import pytest
 
-from enterprise_knowledge_copilot.llm.errors import TruncatedResponseError
+from enterprise_knowledge_copilot.llm.errors import RefusalError, TruncatedResponseError
 from enterprise_knowledge_copilot.llm.models import LLMResponse
 from enterprise_knowledge_copilot.llm.structured import Answer, parse_answer
 
@@ -35,4 +35,18 @@ def test_parse_answer_raises_when_truncated() -> None:
         stop_reason="max_tokens",
     )
     with pytest.raises(TruncatedResponseError):
+        parse_answer(response)
+
+
+def test_parse_answer_raises_when_refused() -> None:
+    """Verify return answer for refused response."""
+    response = LLMResponse(
+        text="The service is healthy",
+        model="claude-haiku-5-5",
+        input_tokens=3,
+        output_tokens=1,
+        cost_usd=0.0000008,
+        stop_reason="refusal",
+    )
+    with pytest.raises(RefusalError):
         parse_answer(response)
