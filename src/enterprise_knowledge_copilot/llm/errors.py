@@ -11,3 +11,11 @@ class LLMTemporaryError(LLMError):
 
 class LLMPermanentError(LLMError):
     """A failure that will not succeed if repeated, such as a bad API key."""
+
+
+class TruncatedResponseError(LLMError):
+    """Raised when the LLM response is truncated."""
+
+
+class RefusalError(LLMError):
+    """Raised when the LLM refused to respond."""

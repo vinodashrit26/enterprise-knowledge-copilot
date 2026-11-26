@@ -222,3 +222,22 @@ def test_truncated_response_is_not_cached(tmp_path: Path) -> None:
     assert response2 == response
     assert inner.complete.call_count == 2
     assert len(list(tmp_path.glob("*.json"))) == 0
+
+
+def test_output_schema_changes_cache_key() -> None:
+    """Verify different output_schema values produce different cache keys."""
+    request1 = LLMRequest(
+        prompt="Caching Test",
+        model="claude-haiku-5-5",
+        max_tokens=100,
+        system=None,
+    )
+    request2 = request1.model_copy(
+        update={
+            "output_schema": {
+                "type": "object",
+                "properties": {"answer": {"type": "string"}},
+            }
+        }
+    )
+    assert cache_key(request1) != cache_key(request2)
